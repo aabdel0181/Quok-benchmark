@@ -3,9 +3,6 @@
 set -e  # Exit immediately if a command exits with a non-zero status
 set -o pipefail  # Fail pipeline if any command fails
 
-# Define working directory
-INSTALL_DIR="/benchmark"
-
 # Ensure script is run as root
 if [[ $EUID -ne 0 ]]; then
     echo "❌ This script must be run as root. Try: sudo bash install_benchmark.sh"
@@ -30,6 +27,16 @@ echo "Installing CUDA & cuDNN dependencies..."
 apt-get install -y --no-install-recommends \
     libcudnn8 libcudnn8-dev
 
+if ! command -v nvcc &> /dev/null; then
+    echo "WARNING: nvcc not found! Installing CUDA Toolkit..."
+    apt install -y nvidia-cuda-toolkit
+fi
+
+export PATH=/usr/local/cuda/bin:$PATH
+export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
+echo "CUDA PATH configured: $(which nvcc)"
+
+
 echo "Installing AI Benchmark..."
 pip3 install ai_benchmark
 sed -i '/np.warnings.filterwarnings/d' /usr/local/lib/python3.10/dist-packages/ai_benchmark/__init__.py
@@ -37,10 +44,10 @@ sed -i '/np.warnings.filterwarnings/d' /usr/local/lib/python3.10/dist-packages/a
 echo "Installing TensorFlow optimized for CUDA..."
 pip3 install --no-cache-dir tensorflow[and-cuda]
 
-# Create installation directory
-mkdir -p "$INSTALL_DIR"
-cd "$INSTALL_DIR"
-
+if [ ! -f "cublas_benchmark.cu" ] || [ ! -f "cudnn_benchmark.cu" ]; then
+    echo "ERROR: CUDA benchmark files not found! Ensure they are in the script directory."
+    exit 1
+fi
 echo "Compiling CUBLAS benchmark..."
 nvcc -o cublas_benchmark cublas_benchmark.cu -lcublas -lcudart
 
