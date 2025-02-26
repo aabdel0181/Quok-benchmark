@@ -41,29 +41,14 @@ pip3 install --no-cache-dir tensorflow[and-cuda]
 mkdir -p "$INSTALL_DIR"
 cd "$INSTALL_DIR"
 
-echo "Copying benchmark scripts..."
-cp /path/to/ai_benchmark.py "$INSTALL_DIR/"
-cp /path/to/ai-benchmark-results.xlsx "$INSTALL_DIR/"
-
-echo "Copying CUDA benchmark scripts..."
-cp /path/to/cublas_benchmark.cu "$INSTALL_DIR/"
-cp /path/to/cudnn_benchmark.cu "$INSTALL_DIR/"
-
 echo "Compiling CUBLAS benchmark..."
-nvcc -o "$INSTALL_DIR/cublas_benchmark" "$INSTALL_DIR/cublas_benchmark.cu" -lcublas -lcudart
+nvcc -o "cublas_benchmark" "$cublas_benchmark.cu" -lcublas -lcudart
 
 echo "Compiling CUDNN benchmark..."
-nvcc "$INSTALL_DIR/cudnn_benchmark.cu" -o "$INSTALL_DIR/cudnn_benchmark" -lcudnn -lcuda -std=c++11
-
-echo "Copying remaining scripts..."
-cp /path/to/main.py "$INSTALL_DIR/"
-cp /path/to/parse.py "$INSTALL_DIR/"
-cp /path/to/gpu_sanity_check.py "$INSTALL_DIR/"
-cp /path/to/ai-benchmark-results.py "$INSTALL_DIR/"
+nvcc "cudnn_benchmark.cu" -o "/cudnn_benchmark" -lcudnn -lcuda -std=c++11
 
 echo "Setting up entrypoint script..."
-cp /path/to/entrypoint.sh "$INSTALL_DIR/"
-chmod +x "$INSTALL_DIR/entrypoint.sh"
+chmod +x "entrypoint.sh"
 
 echo "Installation complete! To run the benchmark, execute:"
-echo "   $INSTALL_DIR/entrypoint.sh"
+echo "   "entrypoint.sh"
