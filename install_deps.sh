@@ -42,13 +42,13 @@ mkdir -p "$INSTALL_DIR"
 cd "$INSTALL_DIR"
 
 echo "Compiling CUBLAS benchmark..."
-nvcc -o "cublas_benchmark" "$cublas_benchmark.cu" -lcublas -lcudart
+nvcc -o cublas_benchmark cublas_benchmark.cu -lcublas -lcudart
 
 echo "Compiling CUDNN benchmark..."
-nvcc "cudnn_benchmark.cu" -o "/cudnn_benchmark" -lcudnn -lcuda -std=c++11
+nvcc cudnn_benchmark.cu -o cudnn_benchmark -lcudnn -lcuda -std=c++11
 
 echo "Setting up entrypoint script..."
-chmod +x "entrypoint.sh"
+chmod +x entrypoint.sh
 
 echo "Installation complete! To run the benchmark, execute:"
-echo "   "entrypoint.sh"
+echo   entrypoint.sh
