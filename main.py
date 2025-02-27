@@ -29,9 +29,31 @@ def run_health_check():
     modify_permissions = ['sudo', 'chmod', '+x', 'scripts/gpu_health.sh']
     subprocess.run(modify_permissions, check=True)
 
-    # Run health check
-    cmd = ['sudo', 'scripts/gpu_health.sh']
-    subprocess.run(cmd, check=True)
+    # Run health check and capture output
+    try:
+        result = subprocess.run(['sudo', 'scripts/gpu_health.sh'], 
+                              check=True,
+                              capture_output=True,
+                              text=True)
+        
+        # Parse JSON output
+        health_data = json.loads(result.stdout)
+        
+        # Create results directory if it doesn't exist
+        os.makedirs('results', exist_ok=True)
+        
+        # Save results to file
+        with open('results/gpu_health.json', 'w') as f:
+            json.dump(health_data, f, indent=2)
+            
+        return health_data
+        
+    except subprocess.CalledProcessError as e:
+        print(f"Error running health check: {e}")
+        return {"error": str(e)}
+    except json.JSONDecodeError as e:
+        print(f"Error parsing health check results: {e}")
+        return {"error": str(e)}
 
 def run_benchmarks(args):
     # Set execute permissions for main benchmark script
