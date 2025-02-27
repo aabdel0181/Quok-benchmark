@@ -55,8 +55,7 @@ python3 main.py --install
 ### GPU Health Check
 
 Run a basic GPU health check:
-
-python3 main.py --health
+1. sudo chmod +x scripts/gpu_health.sh 
 
 ### Individual Benchmarks
 
