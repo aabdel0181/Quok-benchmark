@@ -24,38 +24,25 @@ A comprehensive GPU benchmarking suite for testing and validating GPU performanc
 
 #### 1. Install All Dependencies
 
-python3 main.py --install --all
+sudo ./scripts/install/install.sh --all
 
 #### 2. Install Specific Dependencies
 
-- **CUBLAS Only:**
+# CUBLAS Only
+sudo ./scripts/install/install.sh --cublas
 
-python3 main.py --install --cublas
+# cuDNN Only
+sudo ./scripts/install/install.sh --cudnn
 
-- **cuDNN Only:**
-
-python3 main.py --install --cudnn
-
-- **AI Benchmark Only:**
-
-python3 main.py --install --ai
-
-- **Multiple Specific Components (e.g., CUBLAS and AI):**
-
-python3 main.py --install --cublas --ai
-
-
-#### 3. Install Base Dependencies Only
-
-python3 main.py --install
-
+# AI Benchmark Only
+sudo ./scripts/install/install.sh --ai
 
 ## Running Benchmarks
 
 ### GPU Health Check
 
 Run a basic GPU health check:
-1. sudo chmod +x scripts/gpu_health.sh 
+sudo ./scripts/gpu_health.sh
 
 ### Individual Benchmarks
 
@@ -63,56 +50,146 @@ Run a basic GPU health check:
 
    - Tests basic linear algebra operations and memory transfer speeds.
 
-python3 main.py --cublas
+sudo ./benchmarks/cublas/run.sh
 
 2. **cuDNN Benchmark**
 
 - Tests deep learning primitives like convolutions and pooling operations.
 
-python3 main.py --cudnn
+sudo ./benchmarks/cudnn/run.sh
 
 3. **AI Benchmark**
 
 - Tests various deep learning models and architectures.
 
-python3 main.py --ai
+sudo ./benchmarks/ai/run.sh
 
 ### Combined Benchmarks
 
 1. **Run All Benchmarks**
 
-python3 main.py --all
+sudo ./scripts/run_benchmarks.sh --all
 
 2. **Custom Combinations**
 
-- Run CUBLAS and AI benchmarks:
+# Run CUBLAS and AI benchmarks
+sudo ./scripts/run_benchmarks.sh --cublas --ai
 
-  ```
-  python3 main.py --cublas --ai
-  ```
-
-- Run cuDNN and AI benchmarks:
-
-  ```
-  python3 main.py --cudnn --ai
-  ```
+# Run cuDNN and AI benchmarks
+sudo ./scripts/run_benchmarks.sh --cudnn --ai
 
 ## Sanity Checks
 
 ### Running Sanity Checks
 
-- **After All Benchmarks:**
+# Run with all benchmarks
+sudo ./scripts/run_benchmarks.sh --all --sanity
 
-python3 main.py --all --sanity
+# Run with specific benchmarks
+sudo ./scripts/run_benchmarks.sh --cublas --ai --sanity
 
+## CUBLAS Benchmark 
 
+### Overview 
+CUBLAS (CUDA Basic Linear Algebra Subroutines) benchmark tests fundamental matrix operations that are crucial for machine learning and scientific computing.
 
-- **After Specific Benchmarks (e.g., CUBLAS and AI):**
+- Matrix multiplication (GEMM) operations
+- Memory transfer speeds between CPU and GPU
+- Raw computational throughput
+- Matrix sizes of 2048x2048
+- Measures execution time and GFLOPS
 
-python3 main.py --cublas --ai --sanity
+### What it tells us 
+- Peak floating-point performance
+- Memory bandwidth efficiency
+- Data transfer overhead
+- Basic CUDA core utilization
+- Memory subsystem performance
 
+### Why it's important 
+- Provides baseline GPU performance metrics
+- Essential for machine learning workloads
+- Indicates hardware-level optimization
+- Validates basic CUDA functionality
+- Benchmarks memory hierarchy efficiency
 
+## cuDNN Benchmark 
 
+### Overview 
+Tests deep learning primitives using NVIDIA's Deep Neural Network library (cuDNN).
+
+- Convolution operations (3x3 kernel)
+- Activation functions (ReLU)
+- Pooling operations
+- Input size 256x256
+- Measures millisecond-level timing
+
+### What It Tells Us
+- Neural network operation efficiency
+- Hardware acceleration capabilities
+- Layer-wise processing speed
+- Memory access patterns
+- Tensor operation performance
+
+### Why It's Important
+- Critical for deep learning workloads
+- Indicates real-world DL performance
+- Validates hardware-accelerated operations
+- Essential for training optimization
+- Benchmarks framework compatibility
+
+## AI Benchmark 
+
+### Overview 
+Comprehensive deep learning model benchmark suite testing various neural network architectures.
+
+- Tests multiple architectures:
+- Mobile networks (MobileNet)
+- Classification networks (Inception, ResNet)
+- Image processing (VGG)
+- Specialized networks (SPADE, ICNet)
+
+### What it Tells Us 
+
+- Model-specific performance
+- Training capabilities
+- Inference speed
+- Framework optimization
+- Architecture-specific bottlenecks
+
+### Why It's Important
+
+- Validates production workload performance
+- Guides model selection
+- Identifies optimization opportunities
+- Ensures deployment readiness
+- Benchmarks end-to-end capabilities
+
+## GPU Sanity Check 
+
+### Overview 
+Validates GPU performance against known-good benchmarks and manufacturer specifications.
+
+- Compares inference times
+- Validates training performance
+- Checks against reference data
+- Implements tolerance thresholds
+- Tracks test failures
+
+### What it Tells us 
+
+- Hardware reliability
+- Performance consistency
+- Driver optimization
+- System integration quality
+- Potential hardware issues
+
+### Why It's Important
+- Ensures hardware integrity
+- Validates system configuration
+- Identifies performance regression
+- Maintains quality standards
+- Supports troubleshooting efforts
 ### Understanding Sanity Check Results
 
 The sanity check compares your GPU's performance against known-good benchmarks:
