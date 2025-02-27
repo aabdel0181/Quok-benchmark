@@ -1,155 +1,229 @@
-# Quok-benchmark
-benchmarking repo for quok.it's reliability agent
+# Quok GPU Benchmark Suite
 
-## Output Format
-The system generates three main output files:
-- `results.txt`: Raw benchmark results
-- `gpu_benchmark_results.json`: Structured performance metrics
-- `ai_benchmark_results.json`: Deep learning benchmark results
+A comprehensive GPU benchmarking suite for testing and validating GPU performance across multiple computational domains.
 
-## Warning System
-The health monitoring system uses a two-tier warning system:
-- Warning: Indicates potential issues requiring attention
-- Critical: Indicates immediate action required
+## Table of Contents
 
-## Dependencies
-- NVIDIA GPU drivers
-- CUDA Toolkit
-- cuDNN
-- Python 3.x
-- TensorFlow
-- AI Benchmark suite
+- [Installation](#installation)
+- [Running Benchmarks](#running-benchmarks)
+- [Sanity Checks](#sanity-checks)
+- [Directory Structure](#directory-structure)
+- [Troubleshooting](#troubleshooting)
+- [Contributing](#contributing)
+- [License](#license)
 
 ## Installation
-Run the installation script to set up all dependencies:
-bash 
-sudo bash install_deps.sh 
+
+### Prerequisites
+
+- **Hardware:** NVIDIA GPU  
+- **Operating System:** Ubuntu 20.04 or later  
+- **Software:** Python 3.8+, NVIDIA drivers installed  
+
+### Installing Dependencies
+
+#### 1. Install All Dependencies
+
+python3 main.py --install --all
+
+#### 2. Install Specific Dependencies
+
+- **CUBLAS Only:**
+
+python3 main.py --install --cublas
+
+- **cuDNN Only:**
+
+python3 main.py --install --cudnn
+
+- **AI Benchmark Only:**
+
+python3 main.py --install --ai
+
+- **Multiple Specific Components (e.g., CUBLAS and AI):**
+
+python3 main.py --install --cublas --ai
 
 
-## Code References
-- GPU Health Monitoring: `gpu_health.sh`
-- CUBLAS Benchmark: `cublas_benchmark.cu`
-- cuDNN Benchmark: `cudnn_benchmark.cu`
-- AI Benchmark: `ai_benchmark.py`
-- Results Parser: `parse.py`
+#### 3. Install Base Dependencies Only
 
-## Best Practices
-1. Run health checks regularly during intensive GPU operations
-2. Monitor temperature and memory usage during long training sessions
-3. Compare benchmark results against baseline measurements
-4. Keep drivers and CUDA toolkit updated
-5. Ensure adequate cooling and power supply
+python3 main.py --install
+
+
+## Running Benchmarks
+
+### GPU Health Check
+
+Run a basic GPU health check:
+
+python3 main.py --health
+
+### Individual Benchmarks
+
+1. **CUBLAS Benchmark**
+
+   - Tests basic linear algebra operations and memory transfer speeds.
+
+python3 main.py --cublas
+
+2. **cuDNN Benchmark**
+
+- Tests deep learning primitives like convolutions and pooling operations.
+
+python3 main.py --cudnn
+
+3. **AI Benchmark**
+
+- Tests various deep learning models and architectures.
+
+python3 main.py --ai
+
+### Combined Benchmarks
+
+1. **Run All Benchmarks**
+
+python3 main.py --all
+
+2. **Custom Combinations**
+
+- Run CUBLAS and AI benchmarks:
+
+  ```
+  python3 main.py --cublas --ai
+  ```
+
+- Run cuDNN and AI benchmarks:
+
+  ```
+  python3 main.py --cudnn --ai
+  ```
+
+## Sanity Checks
+
+### Running Sanity Checks
+
+- **After All Benchmarks:**
+
+python3 main.py --all --sanity
+
+
+
+- **After Specific Benchmarks (e.g., CUBLAS and AI):**
+
+python3 main.py --cublas --ai --sanity
+
+
+
+### Understanding Sanity Check Results
+
+The sanity check compares your GPU's performance against known-good benchmarks:
+
+-  **PASS:** Performance within expected ranges  
+- **FAIL:** Performance outside expected ranges  
+
+Results are stored in:
+
+- `results/benchmark_results.json`
+- `results/sanity_check_report.json`
+
+## Directory Structure
+
+quok-benchmark/
+├── scripts/
+│ ├── gpu_health.sh
+│ ├── run_benchmarks.sh
+│ └── install/
+│ ├── install_base.sh
+│ ├── install_cublas.sh
+│ ├── install_cudnn.sh
+│ ├── install_ai.sh
+│ └── install.sh
+├── benchmarks/
+│ ├── cublas/
+│ ├── cudnn/
+│ └── ai/
+├── utils/
+│ ├── parse.py
+│ └── gpu_sanity_check.py
+└── results/
 
 ## Troubleshooting
-- If benchmarks fail, check GPU driver compatibility
-- For memory errors, reduce batch sizes or model complexity
-- For thermal issues, check cooling system and ambient temperature
-- For power-related issues, verify PSU capacity and power delivery
+### Common Issues
 
-## Notes
-- Benchmark results may vary based on system configuration
-- Temperature thresholds may need adjustment for different GPU models
-- Power limits should be adjusted according to GPU specifications
+1. **Installation Failures:**
 
-## CUBLAS Benchmark 
+   - Verify CUDA installation:
 
-### Overview 
-CUBLAS (CUDA Basic Linear Algebra Subroutines) benchmark tests fundamental matrix operations that are crucial for machine learning and scientific computing.
+     ```
+     nvcc --version
+     ```
 
-- Matrix multiplication (GEMM) operations
-- Memory transfer speeds between CPU and GPU
-- Raw computational throughput
-- Matrix sizes of 2048x2048
-- Measures execution time and GFLOPS
+   - Verify cuDNN installation:
 
-### What it tells us 
-- Peak floating-point performance
-- Memory bandwidth efficiency
-- Data transfer overhead
-- Basic CUDA core utilization
-- Memory subsystem performance
+     ```
+     ldconfig -p | grep cudnn
+     ```
 
-### Why it's important 
-- Provides baseline GPU performance metrics
-- Essential for machine learning workloads
-- Indicates hardware-level optimization
-- Validates basic CUDA functionality
-- Benchmarks memory hierarchy efficiency
+2. **Benchmark Failures:**
 
-## cuDNN Benchmark 
+   - Check GPU health:
 
-### Overview 
-Tests deep learning primitives using NVIDIA's Deep Neural Network library (cuDNN).
+     ```
+     python3 main.py --health
+     ```
 
-- Convolution operations (3x3 kernel)
-- Activation functions (ReLU)
-- Pooling operations
-- Input size 256x256
-- Measures millisecond-level timing
+   - Verify GPU temperature:
 
-### What It Tells Us
-- Neural network operation efficiency
-- Hardware acceleration capabilities
-- Layer-wise processing speed
-- Memory access patterns
-- Tensor operation performance
+     ```
+     nvidia-smi
+     ```
 
-### Why It's Important
-- Critical for deep learning workloads
-- Indicates real-world DL performance
-- Validates hardware-accelerated operations
-- Essential for training optimization
-- Benchmarks framework compatibility
+   - Check system resources:
 
-## AI Benchmark 
+     ```
+     top
+     # or
+     htop
+     ```
 
-### Overview 
-Comprehensive deep learning model benchmark suite testing various neural network architectures.
+3. **Performance Issues:**
 
-- Tests multiple architectures:
-- Mobile networks (MobileNet)
-- Classification networks (Inception, ResNet)
-- Image processing (VGG)
-- Specialized networks (SPADE, ICNet)
+   - Update NVIDIA drivers.
+   - Check power management settings.
+   - Ensure thermal throttling is not occurring.
 
-### What it Tells Us 
+### Error Messages
 
-- Model-specific performance
-- Training capabilities
-- Inference speed
-- Framework optimization
-- Architecture-specific bottlenecks
+1. **CUDA Not Found:**
 
-### Why It's Important
+sudo apt install nvidia-cuda-toolkit
+2. **cuDNN Missing:**
 
-- Validates production workload performance
-- Guides model selection
-- Identifies optimization opportunities
-- Ensures deployment readiness
-- Benchmarks end-to-end capabilities
+sudo apt-get install libcudnn8 libcudnn8-dev
 
-## GPU Sanity Check 
+3. **Python Dependencies Issues:**
 
-### Overview 
-Validates GPU performance against known-good benchmarks and manufacturer specifications.
+pip3 install -r requirements.txt
 
-- Compares inference times
-- Validates training performance
-- Checks against reference data
-- Implements tolerance thresholds
-- Tracks test failures
+### Getting Help
 
-### What it Tells us 
+- Review logs in the `results/` directory.
+- Run with verbose output:
 
-- Hardware reliability
-- Performance consistency
-- Driver optimization
-- System integration quality
-- Potential hardware issues
+python3 main.py --all --verbose
 
-### Why It's Important
-- Ensures hardware integrity
-- Validates system configuration
-- Identifies performance regression
-- Maintains quality standards
-- Supports troubleshooting efforts
+- When submitting an issue, include:
+- Full error message
+- GPU model
+- Driver version
+- Benchmark results
+
+## Contributing
+
+1. Fork the repository.
+2. Create a feature branch.
+3. Submit a pull request with your changes.
+
+## License
+
+This project is licensed under the MIT License – see the [LICENSE](LICENSE) file for details.
