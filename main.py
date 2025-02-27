@@ -5,9 +5,11 @@ import sys
 import os
 
 def install_dependencies(args):
-    modify_permissions = ['sudo','chmod', '+x', 'scripts/install/install.sh']
+    # Set execute permissions
+    modify_permissions = ['sudo', 'chmod', '+x', 'scripts/install/install.sh']
     subprocess.run(modify_permissions, check=True)
 
+    # Run installation script
     cmd = ['sudo', 'scripts/install/install.sh']
     
     if args.all:
@@ -22,15 +24,30 @@ def install_dependencies(args):
     
     subprocess.run(cmd, check=True)
 
-def load_config():
-    with open('config/benchmark_config.json', 'r') as f:
-        return json.load(f)
-
 def run_health_check():
-    subprocess.run(['scripts/gpu_health.sh'], check=True)
+    # Set execute permissions
+    modify_permissions = ['sudo', 'chmod', '+x', 'scripts/gpu_health.sh']
+    subprocess.run(modify_permissions, check=True)
+
+    # Run health check
+    cmd = ['sudo', 'scripts/gpu_health.sh']
+    subprocess.run(cmd, check=True)
 
 def run_benchmarks(args):
-    cmd = ['scripts/run_benchmarks.sh']
+    # Set execute permissions for main benchmark script
+    modify_permissions = ['sudo', 'chmod', '+x', 'scripts/run_benchmarks.sh']
+    subprocess.run(modify_permissions, check=True)
+
+    # Set execute permissions for individual benchmark scripts
+    if args.all or args.cublas:
+        subprocess.run(['sudo', 'chmod', '+x', 'benchmarks/cublas/run.sh'], check=True)
+    if args.all or args.cudnn:
+        subprocess.run(['sudo', 'chmod', '+x', 'benchmarks/cudnn/run.sh'], check=True)
+    if args.all or args.ai:
+        subprocess.run(['sudo', 'chmod', '+x', 'benchmarks/ai/run.sh'], check=True)
+
+    # Run benchmarks
+    cmd = ['sudo', 'scripts/run_benchmarks.sh']
     
     if args.all:
         cmd.append('--all')
@@ -43,6 +60,8 @@ def run_benchmarks(args):
             cmd.append('--ai')
     
     if args.sanity:
+        # Set execute permissions for sanity check script
+        subprocess.run(['sudo', 'chmod', '+x', 'utils/gpu_sanity_check.py'], check=True)
         cmd.append('--sanity')
     
     subprocess.run(cmd, check=True)
