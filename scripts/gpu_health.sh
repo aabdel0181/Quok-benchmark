@@ -13,97 +13,97 @@ if ! command -v nvidia-smi &> /dev/null; then
 fi
 
 echo "Running NVIDIA GPU Health Check..."
-
-# Capture `nvidia-smi` output
-GPU_INFO=$(nvidia-smi --query-gpu=gpu_uuid,name,temperature.gpu,fan.speed,memory.total,memory.used,utilization.gpu,utilization.memory,power.draw,power.limit,driver_version --format=csv,noheader,nounits)
-
-# Extract key details
-GPU_UUID=$(echo "$GPU_INFO" | cut -d ',' -f1)
-GPU_NAME=$(echo "$GPU_INFO" | cut -d ',' -f2)
-GPU_TEMP=$(echo "$GPU_INFO" | cut -d ',' -f3)
-FAN_SPEED=$(echo "$GPU_INFO" | cut -d ',' -f4)
-MEMORY_TOTAL=$(echo "$GPU_INFO" | cut -d ',' -f5)
-MEMORY_USED=$(echo "$GPU_INFO" | cut -d ',' -f6)
-GPU_UTILIZATION=$(echo "$GPU_INFO" | cut -d ',' -f7)
-MEMORY_UTILIZATION=$(echo "$GPU_INFO" | cut -d ',' -f8)
-POWER_DRAW=$(echo "$GPU_INFO" | cut -d ',' -f9)
-POWER_LIMIT=$(echo "$GPU_INFO" | cut -d ',' -f10)
-DRIVER_VERSION=$(echo "$GPU_INFO" | cut -d ',' -f11)
-
 echo ""
+
+# Get GPU information
+GPU_UUID=$(nvidia-smi --query-gpu=uuid --format=csv,noheader)
+GPU_NAME=$(nvidia-smi --query-gpu=name --format=csv,noheader)
+DRIVER_VERSION=$(nvidia-smi --query-gpu=driver_version --format=csv,noheader)
+TEMPERATURE=$(nvidia-smi --query-gpu=temperature.gpu --format=csv,noheader)
+FAN_SPEED=$(nvidia-smi --query-gpu=fan.speed --format=csv,noheader)
+MEMORY_USED=$(nvidia-smi --query-gpu=memory.used --format=csv,noheader | cut -d' ' -f1)
+MEMORY_TOTAL=$(nvidia-smi --query-gpu=memory.total --format=csv,noheader | cut -d' ' -f1)
+GPU_UTIL=$(nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader | cut -d' ' -f1)
+MEMORY_UTIL=$(nvidia-smi --query-gpu=utilization.memory --format=csv,noheader | cut -d' ' -f1)
+POWER_DRAW=$(nvidia-smi --query-gpu=power.draw --format=csv,noheader | cut -d' ' -f1)
+POWER_LIMIT=$(nvidia-smi --query-gpu=power.limit --format=csv,noheader | cut -d' ' -f1)
+
+# Print basic information
 echo "GPU UUID: $GPU_UUID"
-echo "GPU Name: $GPU_NAME"
-echo "Driver Version: $DRIVER_VERSION"
-echo "Temperature: ${GPU_TEMP}C"
-echo "Fan Speed: ${FAN_SPEED}%"
-echo "Memory Usage: ${MEMORY_USED}MB / ${MEMORY_TOTAL}MB"
-echo "GPU Utilization: ${GPU_UTILIZATION}%"
-echo "Memory Utilization: ${MEMORY_UTILIZATION}%"
-echo "Power Draw: ${POWER_DRAW}W"
-echo "Power Limit: ${POWER_LIMIT}W"
+echo "GPU Name:  $GPU_NAME"
+echo "Driver Version:  $DRIVER_VERSION"
+echo "Temperature:  ${TEMPERATURE}C"
+echo "Fan Speed:  ${FAN_SPEED}%"
+echo "Memory Usage:  ${MEMORY_USED}MB / ${MEMORY_TOTAL}MB"
+echo "GPU Utilization:  ${GPU_UTIL}%"
+echo "Memory Utilization:  ${MEMORY_UTIL}%"
+echo "Power Draw:  ${POWER_DRAW}W"
+echo "Power Limit:  ${POWER_LIMIT}W"
 echo ""
 
-# Define safe thresholds
-TEMP_WARN=40
-TEMP_CRITICAL=70
-MEMORY_UTIL_WARN=40
-MEMORY_UTIL_CRITICAL=80
-GPU_UTIL_WARN=50
-GPU_UTIL_CRITICAL=95
-POWER_WARN=40  # Percentage of power limit
-POWER_CRITICAL=100
+# Initialize arrays for concerns and fine status
+declare -a concerns
+declare -a fine
 
-# Initialize status messages
-concerns=()
-fine=()
-
-# Check GPU temperature
-if (( $(echo "$GPU_TEMP >= $TEMP_CRITICAL" | bc -l) )); then
-    concerns+=("CRITICAL: GPU temperature is very high ($GPU_TEMP C). Immediate action recommended.")
-elif (( $(echo "$GPU_TEMP >= $TEMP_WARN" | bc -l) )); then
-    concerns+=("Warning: GPU temperature is elevated ($GPU_TEMP C). Consider improving cooling.")
+# Check temperature
+if [ "$TEMPERATURE" -gt 70 ]; then
+    concerns+=("WARNING: GPU temperature is critically high (${TEMPERATURE}C)")
+elif [ "$TEMPERATURE" -gt 40 ]; then
+    concerns+=("Warning: GPU temperature is elevated (${TEMPERATURE}C)")
 else
-    fine+=("GPU temperature is within normal range ($GPU_TEMP C).")
+    fine+=("GPU temperature is within normal range (${TEMPERATURE}C).")
 fi
 
 # Check memory utilization
-MEMORY_PERCENT=$(echo "scale=2; $MEMORY_USED / $MEMORY_TOTAL * 100" | bc -l)
-if (( $(echo "$MEMORY_PERCENT >= $MEMORY_UTIL_CRITICAL" | bc -l) )); then
-    concerns+=("CRITICAL: GPU memory usage is extremely high (${MEMORY_PERCENT}%).")
-elif (( $(echo "$MEMORY_PERCENT >= $MEMORY_UTIL_WARN" | bc -l) )); then
-    concerns+=("Warning: GPU memory usage is high (${MEMORY_PERCENT}%).")
+MEMORY_PERCENT=$(echo "scale=2; ($MEMORY_USED / $MEMORY_TOTAL) * 100" | bc)
+if (( $(echo "$MEMORY_PERCENT > 80" | bc -l) )); then
+    concerns+=("WARNING: High memory utilization (${MEMORY_PERCENT}%)")
+elif (( $(echo "$MEMORY_PERCENT > 40" | bc -l) )); then
+    concerns+=("Warning: Elevated memory utilization (${MEMORY_PERCENT}%)")
 else
     fine+=("GPU memory usage is within normal range (${MEMORY_PERCENT}%).")
 fi
 
 # Check GPU utilization
-if (( $(echo "$GPU_UTILIZATION >= $GPU_UTIL_CRITICAL" | bc -l) )); then
-    concerns+=("CRITICAL: GPU utilization is at ${GPU_UTILIZATION}%.")
-elif (( $(echo "$GPU_UTILIZATION >= $GPU_UTIL_WARN" | bc -l) )); then
-    concerns+=("Warning: GPU utilization is high (${GPU_UTILIZATION}%).")
+if [ "$GPU_UTIL" -gt 95 ]; then
+    concerns+=("WARNING: GPU utilization is very high (${GPU_UTIL}%)")
+elif [ "$GPU_UTIL" -gt 50 ]; then
+    concerns+=("Warning: GPU utilization is elevated (${GPU_UTIL}%)")
 else
-    fine+=("GPU utilization is normal (${GPU_UTILIZATION}%).")
+    fine+=("GPU utilization is normal (${GPU_UTIL}%).")
 fi
 
 # Check power usage
-POWER_PERCENT=$(echo "scale=2; $POWER_DRAW / $POWER_LIMIT * 100" | bc -l)
-if (( $(echo "$POWER_PERCENT >= $POWER_CRITICAL" | bc -l) )); then
-    concerns+=("CRITICAL: GPU power draw is at ${POWER_PERCENT}% of its limit.")
-elif (( $(echo "$POWER_PERCENT >= $POWER_WARN" | bc -l) )); then
-    concerns+=("Warning: GPU power draw is high at ${POWER_PERCENT}% of its limit.")
+POWER_PERCENT=$(echo "scale=2; ($POWER_DRAW / $POWER_LIMIT) * 100" | bc)
+if (( $(echo "$POWER_PERCENT > 100" | bc -l) )); then
+    concerns+=("WARNING: GPU power usage exceeds limit!")
+elif (( $(echo "$POWER_PERCENT > 40" | bc -l) )); then
+    concerns+=("Warning: High power usage (${POWER_PERCENT}% of limit)")
 else
     fine+=("GPU power draw is within safe limits (${POWER_PERCENT}% of limit).")
 fi
 
 # Check fan speed
-if (( $(echo "$FAN_SPEED == 0" | bc -l) )); then
-    concerns+=("Warning: GPU fan is not running. Check cooling system.")
+if [[ "$FAN_SPEED" == "[N/A]" ]]; then
+    # Data center GPU with alternative cooling
+    if [ "$TEMPERATURE" -lt 85 ]; then
+        fine+=("Cooling system is functioning properly (Temperature: ${TEMPERATURE}C)")
+    else
+        concerns+=("WARNING: High temperature detected (${TEMPERATURE}C) despite cooling system")
+    fi
 else
-    fine+=("GPU fan is operational (${FAN_SPEED}%).")
+    # Traditional GPU with fan
+    if [ "$FAN_SPEED" -gt 90 ]; then
+        concerns+=("WARNING: Fan speed is very high (${FAN_SPEED}%)")
+    elif [ "$FAN_SPEED" -gt 70 ]; then
+        concerns+=("Warning: Fan speed is elevated (${FAN_SPEED}%)")
+    else
+        fine+=("GPU fan is operational (${FAN_SPEED}%).")
+    fi
 fi
 
-# Print results
 echo "--------------------------"
+# Print concerns if any exist
 if [ ${#concerns[@]} -gt 0 ]; then
     echo "Concerns detected"
     for issue in "${concerns[@]}"; do
@@ -118,5 +118,4 @@ echo "Fine status"
 for okay in "${fine[@]}"; do
     echo "$okay"
 done
-
 echo "--------------------------"
